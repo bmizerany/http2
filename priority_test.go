@@ -44,6 +44,13 @@ func TestPriority(t *testing.T) {
 }
 
 func TestPriorityExclusiveZero(t *testing.T) {
+	covers(
+		"5.3.1",
+		`A stream that is not dependent on any other stream is given a
+		stream dependency of 0x0. In other words, the non-existent
+		stream 0 forms the root of the tree.`,
+	)
+
 	// A B and C are all children of the 0 stream.
 	// Exclusive reprioritization to any of the streams
 	// should bring the rest of the streams under the
