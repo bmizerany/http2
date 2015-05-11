@@ -186,13 +186,14 @@ func ConfigureServer(s *http.Server, conf *Server) {
 		if testHookOnConn != nil {
 			testHookOnConn()
 		}
-		conf.handleConn(hs, c, h)
+		conf.HandleConn(hs, c, h)
 	}
 	s.TLSNextProto[NextProtoTLS] = protoHandler
 	s.TLSNextProto["h2-14"] = protoHandler // temporary; see above.
 }
 
-func (srv *Server) handleConn(hs *http.Server, c net.Conn, h http.Handler) {
+// TODO: document why this is exported
+func (srv *Server) HandleConn(hs *http.Server, c net.Conn, h http.Handler) {
 	sc := &serverConn{
 		srv:              srv,
 		hs:               hs,
