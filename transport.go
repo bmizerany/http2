@@ -190,11 +190,6 @@ func (t *Transport) getClientConn(host, port string) (*clientConn, error) {
 }
 
 func (t *Transport) newClientConn(host, port, key string) (*clientConn, error) {
-	cfg := &tls.Config{
-		ServerName:         host,
-		NextProtos:         []string{NextProtoTLS},
-		InsecureSkipVerify: t.InsecureTLSDial,
-	}
 	addr := host + ":" + port
 	var conn net.Conn
 	if t.DialTLS != nil {
@@ -204,6 +199,11 @@ func (t *Transport) newClientConn(host, port, key string) (*clientConn, error) {
 			return nil, err
 		}
 	} else {
+		cfg := &tls.Config{
+			ServerName:         host,
+			NextProtos:         []string{NextProtoTLS},
+			InsecureSkipVerify: t.InsecureTLSDial,
+		}
 		tconn, err := tls.Dial("tcp", addr, cfg)
 		if err != nil {
 			return nil, err
@@ -452,6 +452,11 @@ func (cc *clientConn) readLoop() {
 		if err == io.EOF {
 			err = io.ErrUnexpectedEOF
 		}
+		cc.mu.Lock()
+		for _, cs := range cc.streams {
+			cs.resc <- resAndError{err: err}
+		}
+		cc.mu.Unlock()
 		for _, cs := range activeRes {
 			cs.pw.CloseWithError(err)
 		}
