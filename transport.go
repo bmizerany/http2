@@ -404,9 +404,19 @@ func (cc *clientConn) encodeHeaders(req *http.Request) []byte {
 		host = req.URL.Host
 	}
 
+	// 8.1.2.3 Request Pseudo-Header Fields
+	// The :path pseudo-header field includes the path and query parts of the
+	// target URI (the path-absolute production and optionally a '?' character
+	// followed by the query production (see Sections 3.3 and 3.4 of
+	// [RFC3986]). A request in asterisk form includes the value '*' for the
+	// :path pseudo-header field.
 	path := req.URL.Path
 	if path == "" {
 		path = "/"
+	}
+	query := req.URL.RawQuery
+	if query != "" {
+		path += "?" + query
 	}
 
 	cc.writeHeader(":authority", host) // probably not right for all sites
