@@ -623,8 +623,21 @@ type dataFrameWriter struct {
 func (w dataFrameWriter) Write(b []byte) (int, error) {
 	w.cc.mu.Lock()
 	defer w.cc.mu.Unlock()
-	if len(b) > int(w.cc.maxFrameSize) {
-		b = b[:w.cc.maxFrameSize]
+	var (
+		err     error
+		written int
+	)
+	for len(b) > 0 {
+		b = b[written:]
+		if len(b) > int(w.cc.maxFrameSize) {
+			err = w.cc.fr.WriteData(w.cs.ID, false, b[:w.cc.maxFrameSize])
+		} else {
+			err = w.cc.fr.WriteData(w.cs.ID, false, b)
+		}
+		if err != nil {
+			break
+		}
+		written += len(b)
 	}
-	return len(b), w.cc.fr.WriteData(w.cs.ID, false, b)
+	return written, err
 }
